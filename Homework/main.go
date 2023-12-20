@@ -9,6 +9,7 @@ import (
 )
 
 type Task struct {
+	// Модель "Задача" для ORM
 	gorm.Model
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -17,10 +18,11 @@ type Task struct {
 var db *gorm.DB
 
 func main() {
-	initDB()
+	initDB() // Миграция бд при запуске
 
 	router := gin.Default()
 
+	// Эндпоинты
 	router.POST("/tasks", createTask)
 
 	router.GET("/tasks", getTasks)
@@ -35,16 +37,18 @@ func main() {
 }
 
 func initDB() {
+	// Инициализация базы данных
 	var err error
 	db, err = gorm.Open(sqlite.Open("tasks.db"), &gorm.Config{})
 	if err != nil {
 		panic("Не удалось подключиться к базе данных")
 	}
-	
+
 	db.AutoMigrate(&Task{})
 }
 
 func createTask(c *gin.Context) {
+	// Создание задачи
 	var task Task
 	if err := c.ShouldBindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -52,16 +56,18 @@ func createTask(c *gin.Context) {
 	}
 
 	db.Create(&task)
-	c.JSON(http.StatusOK, task)
+	c.JSON(http.StatusCreated, task)
 }
 
 func getTasks(c *gin.Context) {
+	// Список задач
 	var tasks []Task
 	db.Find(&tasks)
 	c.JSON(http.StatusOK, tasks)
 }
 
 func getTask(c *gin.Context) {
+	// Получение одной задачи
 	id := c.Params.ByName("id")
 	var task Task
 	if err := db.Where("id = ?", id).First(&task).Error; err != nil {
@@ -72,6 +78,7 @@ func getTask(c *gin.Context) {
 }
 
 func updateTask(c *gin.Context) {
+	// Изменение задачи
 	id := c.Params.ByName("id")
 	var task Task
 	if err := db.Where("id = ?", id).First(&task).Error; err != nil {
@@ -90,6 +97,7 @@ func updateTask(c *gin.Context) {
 }
 
 func deleteTask(c *gin.Context) {
+	// Удаление задачи
 	id := c.Params.ByName("id")
 	var task Task
 	if err := db.Where("id = ?", id).First(&task).Error; err != nil {
@@ -98,5 +106,5 @@ func deleteTask(c *gin.Context) {
 	}
 
 	db.Delete(&task)
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Задача с ID %s успешно удалена", id)})
+	c.JSON(http.StatusNoContent, gin.H{"message": fmt.Sprintf("Задача с ID %s успешно удалена", id)})
 }
