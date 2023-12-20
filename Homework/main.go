@@ -106,5 +106,5 @@ func deleteTask(c *gin.Context) {
 	}
 
 	db.Delete(&task)
-	c.JSON(http.StatusNoContent, gin.H{"message": fmt.Sprintf("Задача с ID %s успешно удалена", id)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Задача с ID %s успешно удалена", id)})
 }
